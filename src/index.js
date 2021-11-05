@@ -29,7 +29,9 @@ async function getUserBalance(argv) {
 async function sendToken(argv) {
     const {kit, account} = initialize(argv.account, argv.provider)
     const tokens = loadTokens(argv.tokens, argv.chain)
-    await sendPayment(kit, argv.amount, argv.token, argv.to, tokens)
+    const result = await sendPayment(kit, argv.amount, argv.token, argv.to, tokens)
+    console.log(`Sended ${result}`)
+
 }
 
 function initialize(privateKeyPath, provider) {
