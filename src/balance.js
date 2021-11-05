@@ -36,11 +36,12 @@ async function transferErc(kit, address, tokenAddress, amount) {
     const tx = await token.transfer(address, amount).send();
     return tx.waitReceipt();
 }
-async function  transferCelo(kit, address, tokenAddress, amount){
-    const wrapper = getCeloTokenWrapper(kit, token);
+async function  transferCelo(kit, address, tokenName, amount){
+    const wrapper = await getCeloTokenWrapper(kit, tokenName);
     const  tx = await wrapper.transfer(address, amount).send();
     return tx.waitReceipt();
 }
+
 
 async function getCeloTokenWrapper(kit, tokenName) {
     const wrappers = await kit.celoTokens.getWrappers()
@@ -62,14 +63,16 @@ async function getCeloTokenWrapper(kit, tokenName) {
 async function sendPayment(kit, amount, token, to, tokens) {
     const amountInWei = web3.utils.toWei(amount.toString())
 
+    console.log(`Sending payment of ${amountInWei} ${token} to ${to}`)
+
     let element = token.toUpperCase();
     let receipt;
     if (celoTokens.includes(element)) {
-        receipt = transferCelo(kit, to, amountInWei);
+        receipt = transferCelo(kit, to, element,amountInWei);
     } else {
         for (const tokenData of tokens) {
             if (tokenData.name === element) {
-                receipt = await transferErc(kit, to, amountInWei);
+                receipt = await transferErc(kit, to, tokenData.adddress,amountInWei);
             }
         }
     }

@@ -7,7 +7,7 @@ const {hideBin} = require("yargs/helpers");
 const {restoreAccount} = require("./account");
 const {getBalance} = require("./balance");
 
-function loadTokens(tokensPath, chainName){
+function loadTokens(tokensPath, chainName) {
     const parent = path.resolve(__dirname, '..')
     let tokenList = fs.readFileSync(path.resolve(parent, tokensPath));
     let tokens = JSON.parse(tokenList);
@@ -26,10 +26,10 @@ async function getUserBalance(argv) {
     await getBalance(kit, tokens, account.address);
 }
 
-async function sendToken(argv){
+async function sendToken(argv) {
     const {kit, account} = initialize(argv.account, argv.provider)
     const tokens = loadTokens(argv.tokens, argv.chain)
-    await sendPayment(kit, argv.amount, argv.token, argv.to,tokens)
+    await sendPayment(kit, argv.amount, argv.token, argv.to, tokens)
 }
 
 function initialize(privateKeyPath, provider) {
@@ -69,6 +69,7 @@ const argv = yargs(hideBin(process.argv))
     .command('send', 'Get token balances for account', yargs => {
         return yargs
             .options('to', {
+                string: true,
                 describe: 'transfer to',
             }).options('amount', {
                 describe: "amount tokens"
