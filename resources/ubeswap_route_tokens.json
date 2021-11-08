@@ -35,6 +35,12 @@
       "name": "Moola interest",
       "symbol": "MCUSD",
       "decimals": 18
+    },
+    {
+      "address": "0xD15EC721C2A896512Ad29C671997DD68f9593226",
+      "name": "SushiToken",
+      "symbol": "SUSHI",
+      "decimals": 18
     }
   ],
   "alfajores": [

@@ -34,12 +34,14 @@ async function getBalance(kit, tokens, address) {
 async function transferErc(kit, address, tokenAddress, amount) {
     const token = await kit.contracts.getErc20(tokenAddress);
     const tx = await token.transfer(address, amount).send();
-    return await tx.waitReceipt();
+    const receipt = await tx.waitReceipt();
+    return receipt;
 }
 async function  transferCelo(kit, address, tokenName, amount){
     const wrapper = await getCeloTokenWrapper(kit, tokenName);
     const  tx = await wrapper.transfer(address, amount).send();
-    return await tx.waitReceipt();
+    const receipt = await tx.waitReceipt();
+    return receipt;
 }
 
 
@@ -66,9 +68,9 @@ async function sendPayment(kit, amount, token, to, tokens) {
     console.log(`Sending payment of ${amountInWei} ${token} to ${to}`)
 
     let element = token.toUpperCase();
-    let receipt;
+    let receipt = "token not found";
     if (celoTokens.includes(element)) {
-        receipt = transferCelo(kit, to, element,amountInWei);
+        receipt = await transferCelo(kit, to, element, amountInWei);
     } else {
         for (const tokenData of tokens) {
             if (tokenData.symbol === element) {
