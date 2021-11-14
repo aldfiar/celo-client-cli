@@ -4,7 +4,7 @@ const contractKit = require("@celo/contractkit");
 const yargs = require("yargs");
 const {sendPayment} = require("./balance");
 const {hideBin} = require("yargs/helpers");
-const {restoreAccount} = require("./account");
+const {restoreAccount, createAccount} = require("./account");
 const {getBalance} = require("./balance");
 
 function loadTokens(tokensPath, chainName) {
@@ -18,6 +18,9 @@ function loadTokens(tokensPath, chainName) {
 function createKit(url) {
     const kit = contractKit.newKit(url);
     return kit;
+}
+async function createAccountCli(argv){
+    createAccount(argv.account);
 }
 
 async function getUserBalance(argv) {
@@ -67,6 +70,7 @@ const argv = yargs(hideBin(process.argv))
         describe: 'net name',
         default: "mainnet"
     })
+    .command('create', 'Create account', yargs => yargs, createAccountCli)
     .command('get-balance', 'Get token balances for account', yargs => yargs, getUserBalance)
     .command('send', 'Get token balances for account', yargs => {
         return yargs
