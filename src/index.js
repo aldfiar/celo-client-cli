@@ -4,7 +4,7 @@ const contractKit = require("@celo/contractkit");
 const yargs = require("yargs");
 const {sendPayment} = require("./balance");
 const {hideBin} = require("yargs/helpers");
-const {restoreAccount, createAccount} = require("./account");
+const {restoreAccount, createAccount, convertAccount} = require("./account");
 const {getBalance} = require("./balance");
 
 function loadTokens(tokensPath, chainName) {
@@ -19,8 +19,14 @@ function createKit(url) {
     const kit = contractKit.newKit(url);
     return kit;
 }
-async function createAccountCli(argv){
+
+async function createAccountCli(argv) {
     createAccount(argv.account);
+}
+
+function convertAccountCli(argv) {
+    const {kit, account} = initialize(argv.account, argv.provider)
+    convertAccount(account, argv.password, argv.storage)
 }
 
 async function getUserBalance(argv) {
@@ -34,12 +40,10 @@ async function sendToken(argv) {
     const tokens = loadTokens(argv.tokens, argv.chain)
     const result = await sendPayment(kit, argv.amount, argv.token, argv.to, tokens)
     console.log(`Receipt: ${JSON.stringify(result, null, 4)}`)
-
 }
 
 function initialize(privateKeyPath, provider) {
-    const parent = path.resolve(__dirname, '..')
-    let secret = fs.readFileSync(path.resolve(parent, privateKeyPath), 'utf-8');
+    let secret = fs.readFileSync(privateKeyPath, 'utf-8');
     let kit = createKit(provider);
     let account = restoreAccount(secret);
     kit.addAccount(account.privateKey)
@@ -71,6 +75,13 @@ const argv = yargs(hideBin(process.argv))
         default: "mainnet"
     })
     .command('create', 'Create account', yargs => yargs, createAccountCli)
+    .command('convert', 'Convert account', yargs => {
+        return yargs
+            .options('password',
+                {describe: 'password'})
+            .options('storage',
+                {describe: 'path, where encrypted files should be'})
+    }, convertAccountCli)
     .command('get-balance', 'Get token balances for account', yargs => yargs, getUserBalance)
     .command('send', 'Get token balances for account', yargs => {
         return yargs
