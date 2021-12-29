@@ -4,9 +4,9 @@ const {BigNumber} = require('bignumber.js')
 
 const celoTokens = ['CELO', 'CUSD', 'CEUR']
 
-function bigNumberWithDecimalToStr(n) {
+function bigNumberWithDecimalToStr(n, d) {
     let modified = n instanceof BigNumber ? ethers.BigNumber.from(n.toFixed()) : n;
-    const result = ethers.utils.formatEther(modified);
+    const result = ethers.utils.formatUnits(modified, d);
     return result.toString()
 }
 
@@ -25,7 +25,7 @@ async function getBalance(kit, tokens, address) {
         if (!celoTokens.includes(token.name)) {
             const tokenData = await kit.contracts.getErc20(token['address']);
             const balance = await tokenData.balanceOf(address)
-            const formattedBalance = bigNumberWithDecimalToStr(balance);
+            const formattedBalance = bigNumberWithDecimalToStr(balance, token.decimals);
             console.log(`${token.name} balance: ${formattedBalance}`);
         }
     }
@@ -37,9 +37,10 @@ async function transferErc(kit, address, tokenAddress, amount) {
     const receipt = await tx.waitReceipt();
     return receipt;
 }
-async function  transferCelo(kit, address, tokenName, amount){
+
+async function transferCelo(kit, address, tokenName, amount) {
     const wrapper = await getCeloTokenWrapper(kit, tokenName);
-    const  tx = await wrapper.transfer(address, amount).send();
+    const tx = await wrapper.transfer(address, amount).send();
     const receipt = await tx.waitReceipt();
     return receipt;
 }
@@ -63,21 +64,25 @@ async function getCeloTokenWrapper(kit, tokenName) {
 }
 
 async function sendPayment(kit, amount, token, to, tokens) {
-    const amountInWei = web3.utils.toWei(amount.toString())
-
-    console.log(`Sending payment of ${amountInWei} ${token} to ${to}`)
+    const stringAmount = amount.toString()
+    let result
 
     let element = token.toUpperCase();
     let receipt = "token not found";
     if (celoTokens.includes(element)) {
-        receipt = await transferCelo(kit, to, element, amountInWei);
+        result = web3.utils.toWei(stringAmount).toString()
+        receipt = await transferCelo(kit, to, element, result);
     } else {
         for (const tokenData of tokens) {
             if (tokenData.symbol === element) {
-                receipt = await transferErc(kit, to, tokenData.address,amountInWei);
+                result = ethers.utils.parseUnits(stringAmount, tokenData.decimals).toString()
+                receipt = await transferErc(kit, to, tokenData.address, result);
             }
         }
     }
+
+    console.log(`Sent of ${amount} ${token} to ${to}`)
+
     return receipt;
 }
 
